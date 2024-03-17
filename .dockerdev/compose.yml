@@ -1,3 +1,4 @@
+name: my-project
 x-app: &app
   build:
     context: .
@@ -32,6 +33,11 @@ x-backend: &backend
     EDITOR: vim
     DATABASE_URL: mysql2://root:root@db:3306
   user: 1000:1000
+  depends_on:
+    db:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
 
 services:
   rails:
@@ -46,12 +52,27 @@ services:
 
   db:
     image: mysql:5.7
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
     volumes:
       - db:/var/lib/mysql
     environment:
       MYSQL_ROOT_PASSWORD: root
     ports:
       - 3306:3306
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-proot"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  redis:
+    image: redis:6
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 volumes:
   bundle:
@@ -59,4 +80,4 @@ volumes:
   rails_cache:
   assets:
   db:
-
+  redis:
