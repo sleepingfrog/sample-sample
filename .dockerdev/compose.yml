@@ -17,7 +17,7 @@ x-backend: &backend
   tty: true
   volumes:
     - ..:/app:cached
-    - bundle:/usr/local/bundle
+    - bundle:/app/vendor/bundle
     - rails_cache:/app/tmp/cache
     - assets:/app/public/assets
     - history:/usr/local/hist

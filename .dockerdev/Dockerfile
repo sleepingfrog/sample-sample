@@ -2,10 +2,7 @@
 
 ARG RUBY_VERSION
 ARG DISTRO_NAME=bullseye
-
-FROM ruby:$RUBY_VERSION-slim-$DISTRO_NAME
-
-ARG DISTRO_NAME
+FROM ruby:$RUBY_VERSION-slim-bullseye
 
 # Common dependencies
 # Using --mount to speed up build with caching, see https://github.com/moby/buildkit/blob/master/frontend/dockerfile/docs/reference.md#run---mount
@@ -40,18 +37,18 @@ ENV LANG=C.UTF-8 \
 # Store Bundler settings in the project's root
 ENV BUNDLE_APP_CONFIG=.bundle
 
-# Uncomment this line if you want to run binstubs without prefixing with `bin/` or `bundle exec`
-# ENV PATH /app/bin:$PATH
-
 # Upgrade RubyGems and install the latest Bundler version
 RUN gem update --system && \
     gem install bundler
 
 # Create a directory for the app code
-RUN mkdir -p /app
-WORKDIR /app
+RUN mkdir -p /app/vendor/bundle
+RUN groupadd -g 1000 nonroot && \
+  useradd -u 1000 -g nonroot -m nonroot
 
-# Document that we're going to expose port 3000
+RUN chown -R nonroot /app/vendor/bundle
+
+WORKDIR /app
+USER nonroot
 EXPOSE 3000
-# Use Bash as the default command
 CMD ["/bin/bash"]
