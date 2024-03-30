@@ -8,8 +8,8 @@ x-app: &app
   environment: &env
     RAILS_ENV: ${RAILS_ENV:-development}
   tmpfs:
-    - /tmp
-    - /app/tmp/pids
+    - /tmp:mode=777
+    - /app/tmp/pids:mode=777
 
 x-backend: &backend
   <<: *app
@@ -21,7 +21,7 @@ x-backend: &backend
     - rails_cache:/app/tmp/cache
     - assets:/app/public/assets
     - history:/usr/local/hist
-    - ./.bashrc:/root/.bashrc:ro
+  user: 1000:1000
   environment: &backend_environment
     <<: *env
     MALLOC_ARENA_MAX: 2
@@ -32,7 +32,6 @@ x-backend: &backend
     IRB_HISTFILE: /usr/local/hist/.irb_history
     EDITOR: vim
     DATABASE_URL: mysql2://root:root@db:3306
-  user: 1000:1000
   depends_on:
     db:
       condition: service_healthy
@@ -42,13 +41,11 @@ x-backend: &backend
 services:
   rails:
     <<: *backend
-    command: bundle exec rails
+    command: /bin/bash
 
   web:
     <<: *backend
-    command: bundle exec rails server -b 0.0.0.0
-    ports:
-      - '3000:3000'
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
 
   db:
     image: mysql:5.7
